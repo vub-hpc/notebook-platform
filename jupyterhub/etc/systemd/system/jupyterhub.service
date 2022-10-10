@@ -1,0 +1,49 @@
+# Copyright 2022 Vrije Universiteit Brussel
+#
+# This file is part of notebook-platform,
+# originally created by the HPC team of Vrij Universiteit Brussel (http://hpc.vub.be),
+# with support of Vrije Universiteit Brussel (http://www.vub.be),
+# the Flemish Supercomputer Centre (VSC) (https://www.vscentrum.be),
+# the Flemish Research Foundation (FWO) (http://www.fwo.be/en)
+# and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
+#
+# https://github.com/vub-hpc/notebook-platform
+#
+# notebook-platform is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License v3 as published by
+# the Free Software Foundation.
+#
+# notebook-platform is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+#
+###
+#
+# Unit file for a forking service running a rootless container in Podman
+# based on https://www.redhat.com/sysadmin/podman-shareable-systemd-services
+
+[Unit]
+After=network-online.target
+Description=Jupyter Hub container with server and proxy
+Wants=network-online.target
+
+[Service]
+# start Podman container through control script "jupyterhub-init.sh"
+Environment="PODMAN_SYSTEMD_UNIT=%n" 
+Environment="JH_CONTAINER_RUNDIR=%t/jupyterhub-rootless"
+ExecStart=/usr/local/bin/jupyterhub-init.sh "%n"
+# Podman will fork and handle the killing on its own
+ExecStop=/usr/bin/podman stop -t 10 "%n"
+Restart=always
+KillMode=none
+Type=forking
+# run as non-root service
+User=jupyterhub
+Group=jupyterhub
+RuntimeDirectory=jupyterhub-rootless
+PIDFile=/%t/jupyterhub-rootless/%n.pid
+
+[Install]
+WantedBy=multi-user.target
