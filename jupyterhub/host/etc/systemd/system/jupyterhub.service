@@ -1,4 +1,4 @@
-# Copyright 2022 Vrije Universiteit Brussel
+# Copyright 2023 Vrije Universiteit Brussel
 #
 # This file is part of notebook-platform,
 # originally created by the HPC team of Vrij Universiteit Brussel (http://hpc.vub.be),
@@ -27,12 +27,13 @@
 [Unit]
 After=network-online.target
 Description=Jupyter Hub container with server and proxy
+RequiresMountsFor=/var/run/container/storage
 Wants=network-online.target
 
 [Service]
 # start Podman container through control script "jupyterhub-init.sh"
 Environment="PODMAN_SYSTEMD_UNIT=%n" 
-Environment="JH_CONTAINER_RUNDIR=%t/jupyterhub-rootless"
+Environment="JH_CONTAINER_RUNDIR=%t/jupyterhub-rootless" 
 ExecStart=/usr/local/bin/jupyterhub-init.sh "%n"
 # Podman will fork and handle the killing on its own
 ExecStop=/usr/bin/podman stop -t 10 "%n"
