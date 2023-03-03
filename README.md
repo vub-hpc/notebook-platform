@@ -12,6 +12,8 @@ The notebook platform must be capable to:
 
 ## JupyterHub
 
+![JupyterHub integration in HPC cluster](jupyterhub/jupyterhub-diagram.png "JupyterHub integration in HPC cluster")
+
 [JupyterHub](https://jupyter.org/hub) from the Jupyter Project fulfills all
 requirements of this platform. Moreover, the modular architecture of JupyterHub
 allows to easily implement solutions for those requirements that are not
