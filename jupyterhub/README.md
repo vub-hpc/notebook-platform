@@ -113,6 +113,10 @@ Single-user server spawn process:
 4. jupyterhub user submits new job to Slurm cluster as target user keeping the
    hub environment
 
-5. single-user server job fully [resets the environment and
-   re-generates](container/.config/jupyterhub_config.py#L264-L285) specific
-   environment variables for the single-user server
+5. single-user server job script fully [resets the
+   environment](container/.config/jupyterhub_config.py#L264-L285) before any
+   other step is taken to minimize tampering from user's own environment
+
+6. single-user server is launched **without** the mediation of `srun` to be
+   able to use software relying on MPI as *srun-in-srun* is not possible
+

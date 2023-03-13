@@ -257,12 +257,12 @@ vub_partitions_manticore = {
 
 c.MOSlurmSpawner.partitions = vub_partitions_hydra
 
-# Single-user serve job loads its own JupyterHub with batchspawner (for comms)
+# Single-user server job loads its own JupyterHub with batchspawner (for comms)
 # plus either JupyterLab or JupyterNotebook
 # Job environment is reset to an aseptic state avoiding user's customizations
 c.BatchSpawnerBase.req_prologue = """
 function serialize_env(){
-    # Pick all environment variables matching each given pattern
+    # Pick all environment variables matching each given pattern and
     # output their definitions ready to be exported to the environment
     for var_pattern in $@; do
         var_pattern="^${var_pattern}="
@@ -304,8 +304,9 @@ c.SlurmSpawner.batch_cancel_cmd = "scancel {{job_id}} "
 c.SlurmSpawner.batch_query_cmd = r"squeue -h -j {{job_id}} -o \'%T %B\' "
 c.MOSlurmSpawner.slurm_info_cmd = r"sinfo -a --noheader -o \'%R %D %C %G %m\'"
 
-# single-user server is launched with srun, it needs the full environment of the job script
-c.SlurmSpawner.req_srun = 'srun --export=ALL'
+# directly launch single-user server (without srun) to avoid issues with MPI software
+# job environment is already reset before any step starts
+c.SlurmSpawner.req_srun = ''
 
 # expand the execution hostname returned by squeue to a FQDN
 c.SlurmSpawner.state_exechost_exp = r'\1.hydra.internal.domain'
