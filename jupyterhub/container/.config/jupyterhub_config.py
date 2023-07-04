@@ -20,12 +20,15 @@
 #
 #------------------------------------------------------------------------------
 # Network configuration
+# - listen on all interfaces: proxy is in localhost, users are external and
+#   spawners are internal
 #------------------------------------------------------------------------------
-# Listen on all interfaces
-# proxy is in localhost, users are external and spawners are internal
+# Public facing proxy
 c.JupyterHub.bind_url = 'https://0.0.0.0:8000'
+c.JupyterHub.port = 8000
+# Internal hub
 c.JupyterHub.hub_ip = '0.0.0.0'
-# IP address or hostname that spawners should use to connect to the Hub API
+c.JupyterHub.hub_port = 8081
 c.JupyterHub.hub_connect_ip = 'jupyterhub.internal.domain'
 
 #------------------------------------------------------------------------------
@@ -95,6 +98,8 @@ class VSCSlurmSpawner(MOSlurmSpawner):
 # - SSH connection stablished as JupyterHub operator
 # - define job script parameters and commands launching the notebook
 #------------------------------------------------------------------------------
+JHUB_VER = "3.1.1"
+
 set_config(c)
 c.JupyterHub.spawner_class = VSCSlurmSpawner
 c.Spawner.start_timeout = 600  # seconds from job submit to job start
@@ -104,98 +109,119 @@ c.Spawner.http_timeout = 120  # seconds from job start to reachable single-user 
 vub_lab_environments = {
     "2022_default": {
         # Text displayed for this environment select option
-        "description": "2022a: Python v3.10.4 + kernels (default)",
+        "description": "2022a Default: minimal with all modules available",
         # Space separated list of modules to be loaded
-        "modules": "JupyterHub/2.3.1-GCCcore-11.3.0",
+        "modules": f"JupyterHub/{JHUB_VER}-GCCcore-11.3.0",
         # Path to Python environment bin/ used to start jupyter on the Slurm nodes
         "path": "",
         # Toggle adding the environment to shell PATH (default: True)
         "add_to_path": False,
+        "group": "Python v3.10.4",
+    },
+    "2022_scipy": {
+        "description": "2022a DataScience: SciPy-bundle + matplotlib + dask",
+        "modules": (
+            f"JupyterHub/{JHUB_VER}-GCCcore-11.3.0 "
+            "SciPy-bundle/2022.05-foss-2022a "
+            "ipympl/0.9.3-foss-2022a "
+            "dask-labextension/6.0.0-foss-2022a "
+        ),
+        "path": "",
+        "add_to_path": False,
+        "group": "Python v3.10.4",
+    },
+    "2022_nglview": {
+        "description": "2022a Molecules: DataScience + nglview + 3Dmol",
+        "modules": (
+            f"JupyterHub/{JHUB_VER}-GCCcore-11.3.0 "
+            "SciPy-bundle/2022.05-foss-2022a "
+            "ipympl/0.9.3-foss-2022a "
+            "dask-labextension/6.0.0-foss-2022a "
+            "nglview/3.0.3-foss-2022a "
+            "py3Dmol/2.0.1.post1-GCCcore-11.3.0 "
+        ),
+        "path": "",
+        "add_to_path": False,
+        "group": "Python v3.10.4",
     },
     "2022_rstudio": {
-        "description": "2022a: Python v3.10.4 + RStudio",
+        "description": "2022a RStudio with R v4.2.1",
         "modules": (
-            "JupyterHub/2.3.1-GCCcore-11.3.0 "
+            f"JupyterHub/{JHUB_VER}-GCCcore-11.3.0 "
             "jupyter-rsession-proxy/2.1.0-GCCcore-11.3.0 "
             "RStudio-Server/2022.07.2+576-foss-2022a-Java-11-R-4.2.1 "
             "IRkernel/1.3.2-foss-2022a-R-4.2.1 "
         ),
         "path": "",
         "add_to_path": False,
+        "group": "Python v3.10.4",
     },
     "2022_matlab": {
-        "description": "2022a: Python v3.10.4 + MATLAB",
+        "description": "2022a MATLAB",
         "modules": (
             "MATLAB/2022a-r5 "
-            "JupyterHub/2.3.1-GCCcore-11.3.0 "
+            f"JupyterHub/{JHUB_VER}-GCCcore-11.3.0 "
             "jupyter-matlab-proxy/0.5.0-GCCcore-11.3.0 "
         ),
         "path": "",
         "add_to_path": False,
-    },
-    "2022_dask": {
-        "description": "2022a: Python v3.10.4 + dask",
-        "modules": (
-            "JupyterHub/2.3.1-GCCcore-11.3.0 "
-            "dask-labextension/6.0.0-foss-2022a "
-        ),
-        "path": "",
-        "add_to_path": False,
-    },
-    "2022_nglview": {
-        "description": "2022a: Python v3.10.4 + nglview",
-        "modules": (
-            "JupyterHub/2.3.1-GCCcore-11.3.0 "
-            "nglview/3.0.3-foss-2022a "
-        ),
-        "path": "",
-        "add_to_path": False,
+        "group": "Python v3.10.4",
     },
     "2021_default": {
-        "description": "2021a: Python v3.9.5 + kernels (default)",
+        "description": "2021a Default: minimal with all modules available",
         "modules": "JupyterHub/2.3.1-GCCcore-10.3.0",
         "path": "",
         "add_to_path": False,
+        "group": "Python v3.9.5",
+    },
+    "2021_scipy": {
+        "description": "2021a DataScience: SciPy-bundle + matplotlib + dask",
+        "modules": (
+            f"JupyterHub/{JHUB_VER}-GCCcore-10.3.0 "
+            "SciPy-bundle/2021.05-foss-2021a "
+            "ipympl/0.8.8-foss-2021a "
+            "dask-labextension/5.3.1-foss-2021a "
+        ),
+        "path": "",
+        "add_to_path": False,
+        "group": "Python v3.9.5",
+    },
+    "2021_nglview": {
+        "description": "2021a Molecules: DataScience + nglview",
+        "modules": (
+            f"JupyterHub/{JHUB_VER}-GCCcore-10.3.0 "
+            "SciPy-bundle/2021.05-foss-2021a "
+            "ipympl/0.8.8-foss-2021a "
+            "dask-labextension/5.3.1-foss-2021a "
+            "nglview/3.0.3-foss-2021a "
+        ),
+        "path": "",
+        "add_to_path": False,
+        "group": "Python v3.9.5",
     },
     "2021_rstudio": {
-        "description": "2021a: Python v3.9.5 + RStudio",
+        "description": "2021a RStudio with R v4.1.0",
         "modules": (
-            "JupyterHub/2.3.1-GCCcore-10.3.0 "
+            f"JupyterHub/{JHUB_VER}-GCCcore-10.3.0 "
             "jupyter-rsession-proxy/2.1.0-GCCcore-10.3.0 "
             "RStudio-Server/1.4.1717-foss-2021a-Java-11-R-4.1.0 "
             "IRkernel/1.2-foss-2021a-R-4.1.0 "
         ),
         "path": "",
         "add_to_path": False,
+        "group": "Python v3.9.5",
     },
     "2021_matlab": {
-        "description": "2021a: Python v3.9.5 + MATLAB",
+        "description": "2021a MATLAB",
         "modules": (
             "MATLAB/2021a "
-            "JupyterHub/2.3.1-GCCcore-10.3.0 "
+            f"JupyterHub/{JHUB_VER}-GCCcore-10.3.0 "
             "jupyter-matlab-proxy/0.3.4-GCCcore-10.3.0 "
             "MATLAB-Kernel/0.17.1-GCCcore-10.3.0 "
         ),
         "path": "",
         "add_to_path": False,
-    },
-    "2021_dask": {
-        "description": "2021a: Python v3.9.5 + dask",
-        "modules": (
-            "JupyterHub/2.3.1-GCCcore-10.3.0 "
-            "dask-labextension/5.3.1-foss-2021a "
-        ),
-        "path": "",
-        "add_to_path": False,
-    },
-    "2021_nglview": {
-        "description": "2021a: Python v3.9.5 + nglview",
-        "modules": (
-            "JupyterHub/2.3.1-GCCcore-10.3.0 "
-            "nglview/3.0.3-foss-2021a "
-        ),
-        "path": "",
-        "add_to_path": False,
+        "group": "Python v3.9.5",
     },
 }
 
@@ -302,7 +328,9 @@ c.SlurmSpawner.exec_prefix += "sudo -u {username} "
 c.SlurmSpawner.batch_cancel_cmd = "scancel {{job_id}} "
 # protect argument quoting in squeque and sinfo sent through SSH
 c.SlurmSpawner.batch_query_cmd = r"squeue -h -j {{job_id}} -o \'%T %B\' "
-c.MOSlurmSpawner.slurm_info_cmd = r"sinfo -a --noheader -o \'%R %D %C %G %m\'"
+c.MOSlurmSpawner.slurm_info_cmd = (
+    r"sinfo -N -a --noheader -O \'PartitionName,StateCompact,CPUsState,Gres,GresUsed,Memory,Time\'"
+)
 
 # directly launch single-user server (without srun) to avoid issues with MPI software
 # job environment is already reset before any step starts

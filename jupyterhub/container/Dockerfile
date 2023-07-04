@@ -20,11 +20,11 @@
 #
 ###
 #
-# JupyterHub 2.3 + Oauthenticator + batchspawner
+# JupyterHub 3.1 + Oauthenticator + batchspawner + jupyterhub_moss
 # based on https://github.com/jupyterhub/oauthenticator/blob/main/examples/full/Dockerfile
 # JupyterHub run as non-root user
 
-FROM jupyterhub/jupyterhub:2.3
+FROM jupyterhub/jupyterhub:3.1
 
 MAINTAINER VUB-HPC <hpc@vub.be>
 
@@ -44,16 +44,16 @@ RUN python3 -m pip install --upgrade pip
 # install Oauthenticator 
 RUN python3 -m pip install oauthenticator
 # install BatchSpawner and Modular Slurm Spawner (vub-hpc fork)
-RUN python3 -m pip install https://github.com/vub-hpc/batchspawner/archive/refs/tags/v1.2.1.tar.gz
-RUN python3 -m pip install https://github.com/vub-hpc/jupyterhub_moss/archive/refs/tags/v5.5.2.tar.gz
+RUN python3 -m pip install https://github.com/vub-hpc/batchspawner/archive/refs/tags/v1.2.2.tar.gz
+RUN python3 -m pip install https://github.com/vub-hpc/jupyterhub_moss/archive/refs/tags/v6.2.1.tar.gz
 # install vsc-config
+ADD vsc-config /opt/vsc-config
 RUN python3 -m pip install vsc-base
-COPY vsc-config-master.tar.gz /usr/local/src/ 
-RUN python3 -m pip install /usr/local/src/vsc-config-master.tar.gz
+RUN python3 -m pip install /opt/vsc-config
 # install static resources for theming
-COPY vub-hpc-logo-horiz-color.png /usr/local/share/jupyterhub/static/images/
-COPY vub-hpc-logo-square-color.png /usr/local/share/jupyterhub/static/images/
-COPY vsc-logo.png /usr/local/share/jupyterhub/static/images/
+COPY assets/vub-hpc-logo-horiz-color.png /usr/local/share/jupyterhub/static/images/
+COPY assets/vub-hpc-logo-square-color.png /usr/local/share/jupyterhub/static/images/
+COPY assets/vsc-logo.png /usr/local/share/jupyterhub/static/images/
 
 # --- JupyterHub operator: non-root user ---
 # create user with same UID as outside of container
