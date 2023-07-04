@@ -1,0 +1,52 @@
+# Copyright 2023 Vrije Universiteit Brussel
+#
+# This file is part of notebook-platform,
+# originally created by the HPC team of Vrij Universiteit Brussel (http://hpc.vub.be),
+# with support of Vrije Universiteit Brussel (http://www.vub.be),
+# the Flemish Supercomputer Centre (VSC) (https://www.vscentrum.be),
+# the Flemish Research Foundation (FWO) (http://www.fwo.be/en)
+# and the Department of Economy, Science and Innovation (EWI) (http://www.ewi-vlaanderen.be/en).
+#
+# https://github.com/vub-hpc/notebook-platform
+#
+# notebook-platform is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License v3 as published by
+# the Free Software Foundation.
+#
+# notebook-platform is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+###
+#
+# Unit file for a service running a rootless container in Podman
+# generated with `podman generate systemd`
+# based on:
+# - https://www.redhat.com/sysadmin/podman-shareable-systemd-services
+# - https://www.redhat.com/sysadmin/podman-run-pods-systemd-services
+#
+
+[Unit]
+After=network-online.target
+Description=Podman rootless container for JupyterHub
+RequiresMountsFor=%t
+Wants=network-online.target
+
+[Service]
+Environment="PODMAN_SYSTEMD_UNIT=%n"
+ExecStart=/usr/bin/podman run --cidfile=%t/%n/%n.ctr-id --cgroups=no-conmon --sdnotify=conmon --rm --replace -d --read-only --mount=type=tmpfs,tmpfs-size=128M,destination=/home/jupyterhub,chown -v /home/jupyterhub/.ssh:/home/jupyterhub/.ssh:ro -v /home/jupyterhub/.config:/home/jupyterhub/.config:ro -v /home/jupyterhub/.ssl:/home/jupyterhub/.ssl:ro --log-driver=journald -v /dev/log:/dev/log -p 8000:8000/tcp -p 8081:8081/tcp --userns=keep-id --name=jupyterhub ghcr.io/vub-hpc/azure-pipelines-jupyterhub:latest jupyterhub -f /home/jupyterhub/.config/jupyterhub_config.py
+ExecStartPre=/bin/rm -f %t/%n/%n.ctr-id
+ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/%n/%n.ctr-id
+ExecStopPost=/usr/bin/podman rm -f --ignore --cidfile=%t/%n/%n.ctr-id
+NotifyAccess=all
+Restart=on-failure
+RuntimeDirectory=%n
+TimeoutStopSec=70
+Type=notify
+User=jupyterhub
+Group=jupyterhub
+
+[Install]
+WantedBy=multi-user.target
+
